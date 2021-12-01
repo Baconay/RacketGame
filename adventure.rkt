@@ -301,7 +301,7 @@
   (define (close c)
     (set-chest-open?! c #f)))
   (define (examine-contents c)
-    (container-accessible-contents c))
+    (describe-contents c))
 
 ;; make-chest : string container -> chest
 ;; Makes a chest with adjectives and in a location
