@@ -261,6 +261,7 @@
     (begin (initialize-thing! prop)
            prop)))
 
+
 ;;;
 ;;; ADD YOUR TYPES HERE!
 ;;;
@@ -329,11 +330,11 @@
 
 ;; Element ========================================================
 (define-struct (element thing)
-(craftability))
+  (craftability))
 
 ;; Tree ============================================================
 (define-struct (tree thing)
-(durability)
+  (durability)
 #:methods
 (define (punch t)
   (begin (set-tree-durability! t (- tree-durability 1))
@@ -370,6 +371,25 @@
                             location))]
             (begin (initialize-thing! the-barricade)               
                             the-barricade))))
+
+;; Diamond ========================================================
+
+(define-struct (diamond element)
+  ()
+  #:methods
+  )
+
+;; Cobblestone ========================================================
+
+;; Ingot ========================================================
+
+;; Iron ========================================================
+
+;; Gold ========================================================
+
+;; Obsidian ========================================================
+
+
                             
 ;;;
 ;;; USER COMMANDS
@@ -489,17 +509,6 @@
 ;;;
 ;;; PUT YOUR WALKTHROUGHS HERE
 ;;;
-
-
-
-
-
-
-
-
-
-
-
 
 
 
