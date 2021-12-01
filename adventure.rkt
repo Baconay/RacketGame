@@ -490,10 +490,11 @@
 (define (mine barricade pickaxe) 
     (if (and (have? pickaxe) (string=? (pickaxe-material pickaxe) (barricade-weakness barricade)))
         (begin (set-barricade-blocked?! barricade #f)
-               (set-pickaxe-durability! pickaxe (- (pickaxe-durability pickaxe) 10)))
+               (destroy! pickaxe)
+               (display "The barricade is now unblocked. Your pickaxe has broken."))
         (if (<= (pickaxe-durability pickaxe) 0)
             (error "Your pickaxe is broken!")
-            (error "You need a better pickaxe to mine this item"))))
+            (error "You need a better pickaxe to mine this barricade"))))
 
 (define (hp)
   (person-health me))
@@ -527,8 +528,8 @@
             (join! room2 "dry desert"
                     room3 "cave" "Iron" "Stone")
            ;; Add code here to add things to your rooms
-           (new-pickaxe "diamond" "diamond" 100 starting-room)
-           (new-pickaxe "diamond" "diamond" 100 (new-chest "wood" room2))
+           (new-pickaxe "diamond" "diamond" 10 starting-room)
+           (new-pickaxe "diamond" "diamond" 10 (new-chest "wood" room2))
            (check-containers!)
            (void))))
 
