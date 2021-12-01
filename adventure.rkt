@@ -262,6 +262,7 @@
            prop)))
 
 
+
 ;;;
 ;;; ADD YOUR TYPES HERE!
 ;;;
@@ -357,7 +358,7 @@
   #:methods
   (define (go barricade)
     (if (barricade-blocked? barricade)
-    (error "The barricade is blocking your way")
+    (error "The barricade is blocking your way. You should probably mine it!")
     (begin (move! me (door-destination barricade))
            (look))))
 
@@ -373,17 +374,47 @@
                             the-barricade))))
 
 ;; Diamond ========================================================
+(define-struct (diamond element)
+()
+
+)
 
 ;; Cobblestone ========================================================
+(define-struct (cobblestone element)
+()
+
+
+)
 
 ;; Ingot ========================================================
+(define-struct (ingot element)
+(luster)
+#:methods
+
+;;Add something about saying "Oooooooo Shiny" by running examine on this
+
+)
 
 ;; Iron ========================================================
+(define-struct (iron ingot)
+()
+
+
+)
 
 ;; Gold ========================================================
+(define-struct (gold ingot)
+()
+
+
+)
 
 ;; Obsidian ========================================================
+(define-struct (obsidian element)
+()
 
+
+)
 
                             
 ;;;
