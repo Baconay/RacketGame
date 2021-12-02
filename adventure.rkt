@@ -282,14 +282,14 @@
 ;; new-pickaxe: string string container -> pickaxe
 ;; Makes a new pickaxe thing and intializes it
 (define (new-pickaxe adjectives material durability location)
-  (local [(define thing
+  (local [(define the-pickaxe
             (make-pickaxe (string->words adjectives)
                           '()
                           location
                           material
                           durability))]
-      (begin (initialize-thing! thing)
-              thing)))
+      (begin (initialize-thing! the-pickaxe)
+              the-pickaxe)))
 
 
 ;;CHEST ========================================================
@@ -299,7 +299,12 @@
   (define (open c)
     (set-chest-open?! c #t))
   (define (close c)
-    (set-chest-open?! c #f)))
+    (set-chest-open?! c #f))
+  (define (container-accessible-contents c)
+    (if (chest-open? c)
+        (container-contents c)
+        (error "The chest is closed"))))
+  
   (define (examine-contents c)
     (describe-contents c))
 
@@ -312,14 +317,55 @@
                         false))]
       (begin (initialize-thing! the-chest)
               the-chest)))
+              
+              
+;; THE HOME DEPOT===================================================
+(define-struct (TheHomeDepot chest)
+ ())
 
+;; new-homedepot : stuff -> 
+ (define (new-homedepot adjectives location)
+  (local [(define the-home-depot 
+            (make-TheHomeDepot (string->words adjectives)
+                        '() location
+                        true))]
+      (begin (initialize-thing! the-home-depot)
+              the-home-depot)))
+
+;; TRAPPED CHEST====================================================
+(define-struct (dustychest chest)
+  (trapped?)
+  #:methods
+  (define (open c)
+  (if (dustychest-trapped? c)
+    (begin (set-person-health! me (- (hp) 50))
+          (printf "BOOOM... You take 50 damage.")
+          (newline)
+          (printf "Can't believe you fell for that lmao")
+          (newline)
+          (destroy! c)
+          (when (<= (person-health me) 0)
+          (begin (display "You died! LMAO")
+                 (newline)
+                 (display "The game is restarting")
+                  (start-game)
+                  )))
+          (set-chest-open?! c #t))))
+
+;; new-trapchest : string container -> chest
+;; Makes a trapped chest in given location
+(define (new-dustychest adjectives location trapped)
+  (local [(define the-dustychest
+            (make-dustychest (string->words adjectives)
+                            '() location
+                            false trapped))]
+      (begin (initialize-thing! the-dustychest)
+              the-dustychest)))
 
 ;; Stick ========================================================
 (define-struct (stick thing)
   ())
-
-
-;; make-stick : string container -> stick
+;; new-stick : string container -> stick
 ;; Makes a stick with adjective and location
 (define (new-stick adjectives location)
   (local [(define the-stick
@@ -329,29 +375,27 @@
           (begin (initialize-thing! the-stick)
                   the-stick)))
 
-;; Element ========================================================
-(define-struct (element thing)
-(craftability))
-
 ;; Tree ============================================================
 (define-struct (tree thing)
 (durability)
 #:methods
 (define (punch t)
-  (begin (set-tree-durability! t (- tree-durability 1))
-        (if (= tree-durability 0)
-            (destroy! t)
-            (new-stick "wooden" my-inventory))))
-
+  (begin (set-tree-durability! t (- (tree-durability t) 1))
+        (if (= (tree-durability t) 0)
+            (begin (new-stick "wooden" me)
+                    (destroy! t)
+                    (display "You receive: a stick. The tree is now destoryed."))
+            (begin (new-stick "wooden" me)
+                   (display "You receive: a stick."))))))
 ;;Creating tree
 (define (new-tree adjectives durability location)
   (local [(define the-tree
         (make-tree (string->words adjectives)
-                    durability
-                    '() location))]
+                    '() 
+                    location
+                    durability))]
       (begin (initialize-thing! the-tree)
                 the-tree)))
-)
 ;; Barricade ========================================================
 (define-struct (barricade door)
   (material weakness blocked?)
@@ -360,7 +404,7 @@
     (if (barricade-blocked? barricade)
     (error "The barricade is blocking your way. You should probably mine it!")
     (begin (move! me (door-destination barricade))
-           (look))))
+           (look)))))
 
   (define (new-barricade adjectives material weakness location)
     (local [(define the-barricade
@@ -371,50 +415,115 @@
                             '()
                             location))]
             (begin (initialize-thing! the-barricade)               
-                            the-barricade))))
+                            the-barricade)))
+
+;; Element ========================================================
+(define-struct (element thing)
+(craftability matter))
+
+;; Wood ========================================================
+(define-struct (wood element)
+())
+
+(define (new-wood adjectives location)
+  (local [(define the-wood
+        (make-wood (string->words adjectives)
+                    '() 
+                    location
+                    true
+                    "wood"
+                    ))]
+      (begin (initialize-thing! the-wood)
+                the-wood)))
 
 ;; Diamond ========================================================
 (define-struct (diamond element)
-()
+())
 
-)
+(define (new-diamond adjectives location)
+  (local [(define the-diamond
+        (make-diamond (string->words adjectives)
+                    '() 
+                    location
+                    true
+                    "diamond"
+                    ))]
+      (begin (initialize-thing! the-diamond)
+                the-diamond)))
 
 ;; Cobblestone ========================================================
 (define-struct (cobblestone element)
-()
+())
 
-
-)
+(define (new-cobblestone adjectives location)
+  (local [(define the-cobblestone
+        (make-cobblestone (string->words adjectives)
+                    '() 
+                    location
+                    true
+                    "stone"
+                    ))]
+      (begin (initialize-thing! the-cobblestone)
+                the-cobblestone)))
 
 ;; Ingot ========================================================
 (define-struct (ingot element)
 (luster)
-#:methods
 
-;;Add something about saying "Oooooooo Shiny" by running examine on this
+#:methods
+(define (examine ingot)
+  (if (ingot-luster ingot)
+      (display "Shiny!")
+      (display "Dull :(")))
 
 )
 
 ;; Iron ========================================================
-(define-struct (iron ingot)
-()
+(define-struct (ironingot ingot)
+())
 
-
-)
+(define (new-ironingot adjectives location)
+  (local [(define the-ironingot
+        (make-ironingot (string->words adjectives)
+                    '() 
+                    location
+                    true
+                    "iron"
+                    true
+                    ))]
+      (begin (initialize-thing! the-ironingot)
+                the-ironingot)))
 
 ;; Gold ========================================================
-(define-struct (gold ingot)
-()
+(define-struct (goldingot ingot)
+())
 
-
-)
+(define (new-goldingot adjectives location)
+  (local [(define the-goldingot
+        (make-goldingot (string->words adjectives)
+                    '() 
+                    location
+                    true
+                    "gold"
+                    true
+                    ))]
+      (begin (initialize-thing! the-goldingot)
+                the-goldingot)))
 
 ;; Obsidian ========================================================
 (define-struct (obsidian element)
-()
+())
 
-
-)
+(define (new-obsidian adjectives location)
+  (local [(define the-obsidian
+        (make-obsidian (string->words adjectives)
+                    '() 
+                    location
+                    true
+                    "obsidian"
+                    ))]
+      (begin (initialize-thing! the-obsidian)
+                the-obsidian)))
 
                             
 ;;;
@@ -488,26 +597,49 @@
 ;;;
 
 (define (mine barricade pickaxe) 
+  (if (barricade-blocked? barricade)
     (if (and (have? pickaxe) (string=? (pickaxe-material pickaxe) (barricade-weakness barricade)))
         (begin (set-barricade-blocked?! barricade #f)
                (destroy! pickaxe)
                (display "The barricade is now unblocked. Your pickaxe has broken."))
         (if (<= (pickaxe-durability pickaxe) 0)
             (error "Your pickaxe is broken!")
-            (error "You need a better pickaxe to mine this barricade"))))
+            (error "You need the right pickaxe to mine this barricade")))
+      (display "The barricade is already unblocked LMbawAO")))
+
+(define-user-command (mine barricade pickaxe)
+  "Mines a barricade with a pickaxe")
 
 (define (hp)
   (person-health me))
+  
+(define-user-command (hp)
+  "Prints the user's health")
 
+(define (craft-pickaxe stick material)
+      (begin
+        (if (have? stick)
+            (if (element-craftability material)
+                (begin (destroy! material)
+                        (destroy! stick)
+                        (new-pickaxe (element-matter material) (element-matter material) 10 me)
+                        (display "Congrats, you can mine now"))
+              (error "Cannot craft pickaxe"))
+        (error "Cannot craft pickaxe"))
+        (when (and (ingot? material) (ingot-luster material))
+            (display "Achievement Unlocked: Oooooo Shiny Pickaxe!"))))
 
-;(define (craft-pickaxe stick material)
- ;       (if (have? stick)
-  ;          (if (element-craftability material)
-   ;             (begin (destroy! material)
-                        ;(new-pickaxe (material->string) (material->string)
-    ;                    (my-inventory)))
-     ;         (error "Cannot craft pickaxe"))
-      ;  (error "Cannot craft pickaxe"))
+(define-user-command (craft-pickaxe stick material)
+  "Crafts a pickaxe using a stick and a material")
+            
+            
+ (define-user-command (thisisaverylongandhardtotypecommandbecausewewantyoutoworktoseeifthechestistrapped chest)
+  "Checks to see if a chest is trapped or not")       
+
+(define (thisisaverylongandhardtotypecommandbecausewewantyoutoworktoseeifthechestistrapped dustychest)
+  (if (dustychest-trapped? dustychest)
+        (display "OH NO, THERE MAY OR MAY NOT BE A BOMB UNDER THE CHEST")
+        (display "Nah you safe chief")))
         
 ;;;
 ;;; THE GAME WORLD - FILL ME IN
@@ -524,12 +656,23 @@
     (begin (set! me (new-person "Steve" 100 starting-room))
            ;; Add join commands to connect your rooms with doors
            (join! starting-room "cave"
-                  room2 "green forest" "Obsidian" "diamond")
+                  room2 "green forest" "cobblestone" "wood")
             (join! room2 "dry desert"
-                    room3 "cave" "Iron" "Stone")
+                    room3 "cave" "iron" "iron")
+            (join! room3 "dry desert"
+                    room4 "snowy mountain" "obsidian" "diamond")
            ;; Add code here to add things to your rooms
-           (new-pickaxe "diamond" "diamond" 10 starting-room)
-           (new-pickaxe "diamond" "diamond" 10 (new-chest "wood" room2))
+           (new-dustychest "tempting" starting-room true)
+           (new-wood "brown" (new-homedepot "Friendly" starting-room))
+           (new-tree "tall" 1 starting-room)
+           (new-tree "purple pride" 1 room2)
+           (new-tree "Christmas" 1 room3)
+           (new-pickaxe "wooden" "wood" 10 starting-room)
+           (new-ironingot "shiny" (new-chest "wood" room2))
+           (new-dustychest "inviting" room2 true)
+           (new-goldingot "shiny" (new-dustychest "???" room2 true))
+           (new-diamond "diamond" (new-dustychest "terrifying" room3 false))
+           (new-dustychest "totally safe" room3 true)
            (check-containers!)
            (void))))
 
@@ -537,7 +680,19 @@
 ;;; PUT YOUR WALKTHROUGHS HERE
 ;;;
 
+(define-walkthrough test
+  (open (the wood chest))
+  (take (within (the wood chest)))
+  (punch (the tree))
+  (mine (the barricade))
+  (go (the barricade)))
 
+
+
+;;Count all elements
+
+;;Trees in every room
+;;make the homedepot with wood
 
 
 
