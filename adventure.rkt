@@ -333,11 +333,11 @@
               the-home-depot)))
 
 ;; TRAPPED CHEST====================================================
-(define-struct (dustychest chest)
+(define-struct (enderchest chest)
   (trapped?)
   #:methods
   (define (open c)
-  (if (dustychest-trapped? c)
+  (if (enderchest-trapped? c)
     (begin (set-person-health! me (- (hp) 50))
           (printf "BOOOM... You take 50 damage.")
           (newline)
@@ -347,20 +347,21 @@
           (when (<= (person-health me) 0)
           (begin (display "You died! LMAO")
                  (newline)
-                 (display "The game is restarting")
+                 (newline)
+                 (display "RESTARTING GAME")
                   (start-game)
                   )))
           (set-chest-open?! c #t))))
 
 ;; new-trapchest : string container -> chest
 ;; Makes a trapped chest in given location
-(define (new-dustychest adjectives location trapped)
-  (local [(define the-dustychest
-            (make-dustychest (string->words adjectives)
+(define (new-enderchest adjectives location trapped)
+  (local [(define the-enderchest
+            (make-enderchest (string->words adjectives)
                             '() location
                             false trapped))]
-      (begin (initialize-thing! the-dustychest)
-              the-dustychest)))
+      (begin (initialize-thing! the-enderchest)
+              the-enderchest)))
 
 ;; Stick ========================================================
 (define-struct (stick thing)
@@ -622,7 +623,7 @@
             (if (element-craftability material)
                 (begin (destroy! material)
                         (destroy! stick)
-                        (new-pickaxe (element-matter material) (element-matter material) 10 me)
+                        (new-pickaxe (element-matter material) (element-matter material) 1 me)
                         (display "Congrats, you can mine now"))
               (error "Cannot craft pickaxe"))
         (error "Cannot craft pickaxe"))
@@ -633,14 +634,53 @@
   "Crafts a pickaxe using a stick and a material")
             
             
- (define-user-command (thisisaverylongandhardtotypecommandbecausewewantyoutoworktoseeifthechestistrapped chest)
+ (define-user-command (thisisaverylongandhardtotypecommandbecausewewantyoutoworktoseeifthechestistrapped enderchest)
   "Checks to see if a chest is trapped or not")       
 
-(define (thisisaverylongandhardtotypecommandbecausewewantyoutoworktoseeifthechestistrapped dustychest)
-  (if (dustychest-trapped? dustychest)
+(define (thisisaverylongandhardtotypecommandbecausewewantyoutoworktoseeifthechestistrapped enderchest)
+  (if (enderchest-trapped? enderchest)
         (display "OH NO, THERE MAY OR MAY NOT BE A BOMB UNDER THE CHEST")
         (display "Nah you safe chief")))
-        
+
+  (define-user-command (open chest)
+  "Opens a chest")      
+
+  (define-user-command (close chest)
+  "Closes a chest")
+
+  (define-user-command (punch tree)
+  "Punches a tree for sticks")   
+
+  (define-user-command (check-durability pickaxe)
+  "Checks the durability of a pickaxe")     
+
+  (define (vulnerability barricade)
+    (begin
+    (display "The barricade is weak to ")
+    (display (barricade-weakness barricade))))
+
+  (define-user-command (vulnerability barricade)
+  "Checks what type of pickaxe the barricade is weak to")
+
+  (define (obstructed? barricade)
+    (if (barricade-blocked? barricade)
+        (begin 
+        (display "The barricade seems to be blocked by some ")
+        (display (barricade-material barricade))
+        (display " debris"))
+        (display "The path is clear! I hope")))
+  
+  (define-user-command (obstructed? barricade)
+  "Checks to see if a barricade is blocked")
+
+  (define (alchemy??? material pickaxe)
+    (begin (upgrade pickaxe (element-matter material))
+          (display "Achievement unlocked: Black Magic???")
+          (newline)
+          (display "Your pickaxe has now been upgraded")))
+
+    (define-user-command (alchemy??? m p)
+    "?????????????")
 ;;;
 ;;; THE GAME WORLD - FILL ME IN
 ;;;
@@ -662,17 +702,17 @@
             (join! room3 "dry desert"
                     room4 "snowy mountain" "obsidian" "diamond")
            ;; Add code here to add things to your rooms
-           (new-dustychest "tempting" starting-room true)
-           (new-wood "brown" (new-homedepot "Friendly" starting-room))
+           (new-enderchest "tempting" starting-room true)
+           (new-wood "fresh" (new-homedepot "friendly" starting-room))
            (new-tree "tall" 1 starting-room)
            (new-tree "purple pride" 1 room2)
            (new-tree "Christmas" 1 room3)
-           (new-pickaxe "wooden" "wood" 10 starting-room)
+           (new-pickaxe "wooden" "wood" 1 starting-room)
            (new-ironingot "shiny" (new-chest "wood" room2))
-           (new-dustychest "inviting" room2 true)
-           (new-goldingot "shiny" (new-dustychest "???" room2 true))
-           (new-diamond "diamond" (new-dustychest "terrifying" room3 false))
-           (new-dustychest "totally safe" room3 true)
+           (new-enderchest "inviting" room2 true)
+           (new-goldingot "shiny" (new-enderchest "???" room2 true))
+           (new-diamond "diamond" (new-enderchest "terrifying" room3 false))
+           (new-enderchest "totally safe" room3 true)
            (check-containers!)
            (void))))
 
