@@ -193,9 +193,9 @@
 ;; join: room string room string
 ;; EFFECT: makes a pair of doors with the specified adjectives
 ;; connecting the specified rooms.
-(define (join! room1 adjectives1 room2 adjectives2 material weakness)
-  (local [(define r1->r2 (make-barricade (string->words adjectives1)
-                                    '() room1 room2 material weakness #t))
+(define (join! room1 adjectives1 room2 adjectives2)
+  (local [(define r1->r2 (make-door (string->words adjectives1)
+                                    '() room1 room2))
           (define r2->r1 (make-door (string->words adjectives2)
                                     '() room2 room1))]
     (begin (initialize-thing! r1->r2)
@@ -208,7 +208,7 @@
 ;;;
 
 (define-struct (person thing)
-  (health))
+  ())
 
 ;; initialize-person: person -> void
 ;; EFFECT: do whatever initializations are necessary for persons.
@@ -217,11 +217,10 @@
 
 ;; new-person: string container -> person
 ;; Makes a new person object and initializes it.
-(define (new-person adjectives location health)
+(define (new-person adjectives location)
   (local [(define person
             (make-person (string->words adjectives)
                          '()
-                         health
                          location))]
     (begin (initialize-person! person)
            person)))
@@ -261,272 +260,78 @@
     (begin (initialize-thing! prop)
            prop)))
 
-
-
 ;;;
-;;; ADD YOUR TYPES HERE!
+;;; Magic 8 ball
 ;;;
 
-;;PICKAXE ========================================================
-(define-struct (pickaxe thing)
-  (material durability)
-
+(define-struct (magic-8-ball thing)
+  ;; sayings: (listof string)
+  ;; The collection of strings that it picks from when generating an answer. 
+  (sayings)
   #:methods
-  (define (upgrade new-material pickaxe)
-    (set! pickaxe-material new-material))
-    
-  (define (check-durability pickaxe)
-    (pickaxe-durability pickaxe))
-)
-
-;; new-pickaxe: string string container -> pickaxe
-;; Makes a new pickaxe thing and intializes it
-(define (new-pickaxe adjectives material durability location)
-  (local [(define the-pickaxe
-            (make-pickaxe (string->words adjectives)
-                          '()
-                          location
-                          material
-                          durability))]
-      (begin (initialize-thing! the-pickaxe)
-              the-pickaxe)))
-
-
-;;CHEST ========================================================
-(define-struct (chest thing)
-  (open?)
-  #:methods
-  (define (open c)
-    (set-chest-open?! c #t))
-  (define (close c)
-    (set-chest-open?! c #f))
-  (define (container-accessible-contents c)
-    (if (chest-open? c)
-        (container-contents c)
-        (error "The chest is closed"))))
+  ;; change noun to just return "ball"; we put the magic and 8
+  ;; in the adjectives
+  (define (noun ball)
+    "ball")
   
-  (define (examine-contents c)
-    (describe-contents c))
+  ;; shake: magic-8-ball -> void
+  ;; Randomly print a saying.
+  (define (shake ball)
+    (begin
+      (display-line "As you lift the ball, faint words appear in the inky darkness.")
+      (display "They read: ")
+      (display-line (random-element (magic-8-ball-sayings ball)))))
 
-;; make-chest : string container -> chest
-;; Makes a chest with adjectives and in a location
-(define (new-chest adjectives location)
-  (local [(define the-chest 
-            (make-chest (string->words adjectives)
-                        '() location
-                        false))]
-      (begin (initialize-thing! the-chest)
-              the-chest)))
-              
-              
-;; THE HOME DEPOT===================================================
-(define-struct (TheHomeDepot chest)
- ())
+  (define (examine ball)
+    (shake ball)))
 
-;; new-homedepot : stuff -> 
- (define (new-homedepot adjectives location)
-  (local [(define the-home-depot 
-            (make-TheHomeDepot (string->words adjectives)
-                        '() location
-                        true))]
-      (begin (initialize-thing! the-home-depot)
-              the-home-depot)))
+;; Tell the help system that shake is a command.
+(define-user-command (shake magic-8-ball)
+  "Tells your future")
 
-;; ENDER CHEST====================================================
-(define-struct (enderchest chest)
-  (trapped?)
-  #:methods
-  (define (open c)
-  (if (enderchest-trapped? c)
-    (begin (set-person-health! me (- (hp) 50))
-          (printf "BOOOM... You take 50 damage.")
-          (newline)
-          (printf "Can't believe you fell for that lmao")
-          (newline)
-          (destroy! c)
-          (when (<= (person-health me) 0)
-          (begin (display "You died! LMAO")
-                 (newline)
-                 (newline)
-                 (display "RESTARTING GAME")
-                  (start-game)
-                  )))
-          (set-chest-open?! c #t))))
+;; random-element: (listof T) -> T
+;; Return a randomly chosen element of list.
+(define (random-element list)
+  (list-ref list
+            (random (length list))))
 
-;; new-trapchest : string container -> chest
-;; Makes a ender chest in given location
-(define (new-enderchest adjectives location trapped)
-  (local [(define the-enderchest
-            (make-enderchest (string->words adjectives)
-                            '() location
-                            false trapped))]
-      (begin (initialize-thing! the-enderchest)
-              the-enderchest)))
+;; new-magic-8-ball: (listof string) container -> magic-8-ball
+;; Makes a magic 8 ball with the specified set of sayings
+(define (new-magic-8-ball sayings location)
+  (local [(define ball
+            (make-magic-8-ball '("magic" "8")
+                               '()
+                               location
+                               sayings))]
+    (begin (initialize-thing! ball)
+           ball)))
 
-;; Stick ========================================================
-(define-struct (stick thing)
-  ())
-;; new-stick : string container -> stick
-;; Makes a stick with adjective and location
-(define (new-stick adjectives location)
-  (local [(define the-stick
-            (make-stick (string->words adjectives)
-                        '()
-                        location))]
-          (begin (initialize-thing! the-stick)
-                  the-stick)))
+;; standard-magic-8-ball: container -> magic-8-ball
+;; Makes a magic 8 ball with the default sayings
+(define (standard-magic-8-ball location)
+  (new-magic-8-ball '("It is certain."
+                      "It is decidedly so."
+                      "Without a doubt."
+                      "Yes – definitely."
+                      "You may rely on it."
+                      "As I see it, yes."
+                      "Most likely."
+                      "Outlook good."
+                      "Yes."
+                      "Signs point to yes."
+                      "Reply hazy, try again."
+                      "Ask again later."
+                      "Better not tell you now."
+                      "Cannot predict now."
+                      "Concentrate and ask again."
+                      "Don't count on it."
+                      "My reply is no."
+                      "My sources say no."
+                      "Outlook not so good."
+                      "Very doubtful.")
+                    location))
 
-;; Tree ============================================================
-(define-struct (tree thing)
-(durability)
-#:methods
-(define (punch t)
-  (begin (set-tree-durability! t (- (tree-durability t) 1))
-        (if (= (tree-durability t) 0)
-            (begin (new-stick "wooden" me)
-                    (destroy! t)
-                    (display "You receive: a stick. The tree is now destoryed."))
-            (begin (new-stick "wooden" me)
-                   (display "You receive: a stick."))))))
-;;Creating tree
-(define (new-tree adjectives durability location)
-  (local [(define the-tree
-        (make-tree (string->words adjectives)
-                    '() 
-                    location
-                    durability))]
-      (begin (initialize-thing! the-tree)
-                the-tree)))
-;; Barricade ========================================================
-(define-struct (barricade door)
-  (material weakness blocked?)
-  #:methods
-  (define (go barricade)
-    (if (barricade-blocked? barricade)
-    (error "The barricade is blocking your way. You should probably mine it!")
-    (begin (move! me (door-destination barricade))
-           (look)))))
 
-  (define (new-barricade adjectives material weakness location)
-    (local [(define the-barricade
-            (make-barricade (string->words adjectives)
-                            material
-                            weakness
-                            #t
-                            '()
-                            location))]
-            (begin (initialize-thing! the-barricade)               
-                            the-barricade)))
-
-;; Element ========================================================
-(define-struct (element thing)
-(craftability matter))
-
-;; Wood ========================================================
-(define-struct (wood element)
-())
-
-(define (new-wood adjectives location)
-  (local [(define the-wood
-        (make-wood (string->words adjectives)
-                    '() 
-                    location
-                    true
-                    "wood"
-                    ))]
-      (begin (initialize-thing! the-wood)
-                the-wood)))
-
-;; Diamond ========================================================
-(define-struct (diamond element)
-())
-
-(define (new-diamond adjectives location)
-  (local [(define the-diamond
-        (make-diamond (string->words adjectives)
-                    '() 
-                    location
-                    true
-                    "diamond"
-                    ))]
-      (begin (initialize-thing! the-diamond)
-                the-diamond)))
-
-;; Cobblestone ========================================================
-(define-struct (cobblestone element)
-())
-
-(define (new-cobblestone adjectives location)
-  (local [(define the-cobblestone
-        (make-cobblestone (string->words adjectives)
-                    '() 
-                    location
-                    true
-                    "stone"
-                    ))]
-      (begin (initialize-thing! the-cobblestone)
-                the-cobblestone)))
-
-;; Ingot ========================================================
-(define-struct (ingot element)
-(luster)
-
-#:methods
-(define (examine ingot)
-  (if (ingot-luster ingot)
-      (display "Shiny!")
-      (display "Dull :(")))
-
-)
-
-;; Iron ========================================================
-(define-struct (ironingot ingot)
-())
-
-(define (new-ironingot adjectives location)
-  (local [(define the-ironingot
-        (make-ironingot (string->words adjectives)
-                    '() 
-                    location
-                    true
-                    "iron"
-                    true
-                    ))]
-      (begin (initialize-thing! the-ironingot)
-                the-ironingot)))
-
-;; Gold ========================================================
-(define-struct (goldingot ingot)
-())
-
-(define (new-goldingot adjectives location)
-  (local [(define the-goldingot
-        (make-goldingot (string->words adjectives)
-                    '() 
-                    location
-                    true
-                    "gold"
-                    true
-                    ))]
-      (begin (initialize-thing! the-goldingot)
-                the-goldingot)))
-
-;; Obsidian ========================================================
-(define-struct (obsidian element)
-())
-
-(define (new-obsidian adjectives location)
-  (local [(define the-obsidian
-        (make-obsidian (string->words adjectives)
-                    '() 
-                    location
-                    true
-                    "obsidian"
-                    ))]
-      (begin (initialize-thing! the-obsidian)
-                the-obsidian)))
-
-                            
 ;;;
 ;;; USER COMMANDS
 ;;;
@@ -594,158 +399,35 @@
   "Throws an exception if condition is false.")
 
 ;;;
-;;; ADD YOUR COMMANDS HERE!
+;;; THE GAME WORLD
 ;;;
 
-(define (mine barricade pickaxe) 
-  (if (barricade-blocked? barricade)
-    (if (and (have? pickaxe) (string=? (pickaxe-material pickaxe) (barricade-weakness barricade)))
-        (begin (set-barricade-blocked?! barricade #f)
-               (destroy! pickaxe)
-               (display "The barricade is now unblocked. Your pickaxe has broken."))
-        (if (<= (pickaxe-durability pickaxe) 0)
-            (error "Your pickaxe is broken!")
-            (error "You need the right pickaxe to mine this barricade")))
-      (display "The barricade is already unblocked LMbawAO")))
-
-(define-user-command (mine barricade pickaxe)
-  "Mines a barricade with a pickaxe")
-
-(define (hp)
-  (person-health me))
-  
-(define-user-command (hp)
-  "Prints the user's health")
-
-(define (craft-pickaxe stick material)
-      (begin
-        (if (have? stick)
-            (if (element-craftability material)
-                (begin (destroy! material)
-                        (destroy! stick)
-                        (new-pickaxe (element-matter material) (element-matter material) 1 me)
-                        (display "Congrats, you can mine now"))
-              (error "Cannot craft pickaxe"))
-        (error "Cannot craft pickaxe"))
-        (when (and (ingot? material) (ingot-luster material))
-            (display "Achievement Unlocked: Oooooo Shiny Pickaxe!"))))
-
-(define-user-command (craft-pickaxe stick material)
-  "Crafts a pickaxe using a stick and a material")
-            
-            
- (define-user-command (thisisaverylongandhardtotypecommandbecausewewantyoutoworktoseeifthechestistrapped enderchest)
-  "Checks to see if a chest is trapped or not")       
-
-(define (thisisaverylongandhardtotypecommandbecausewewantyoutoworktoseeifthechestistrapped enderchest)
-  (if (enderchest-trapped? enderchest)
-        (display "OH NO, THERE MAY OR MAY NOT BE A BOMB UNDER THE CHEST")
-        (display "Nah you safe chief")))
-
-  (define-user-command (open chest)
-  "Opens a chest")      
-
-  (define-user-command (close chest)
-  "Closes a chest")
-
-  (define-user-command (punch tree)
-  "Punches a tree for sticks")   
-
-  (define-user-command (check-durability pickaxe)
-  "Checks the durability of a pickaxe")     
-
-  (define (vulnerability barricade)
-    (begin
-    (display "The barricade is weak to ")
-    (display (barricade-weakness barricade))))
-
-  (define-user-command (vulnerability barricade)
-  "Checks what type of pickaxe the barricade is weak to")
-
-  (define (obstructed? barricade)
-    (if (barricade-blocked? barricade)
-        (begin 
-        (display "The barricade seems to be blocked by some ")
-        (display (barricade-material barricade))
-        (display " debris"))
-        (display "The path is clear! I hope")))
-  
-  (define-user-command (obstructed? barricade)
-  "Checks to see if a barricade is blocked")
-
-  (define (alchemy??? material pickaxe)
-    (begin (upgrade pickaxe (element-matter material))
-          (display "Achievement unlocked: Black Magic???")
-          (newline)
-          (display "Your pickaxe has now been upgraded")))
-
-    (define-user-command (alchemy??? m p)
-    "?????????????")
-;;;
-;;; THE GAME WORLD - FILL ME IN
-;;;
-
-;; start-game: -> void
-;; Recreate the player object and all the rooms and things.
 (define (start-game)
-  ;; Fill this in with the rooms you want
-  (local [(define starting-room (new-room "green forest"))
-          (define room2 (new-room "cave"))
-          (define room3 (new-room "dry desert"))
-          (define room4 (new-room "snowy mountain"))]
-    (begin (set! me (new-person "Steve" 100 starting-room))
-           ;; Add join commands to connect your rooms with doors
-           (join! starting-room "cave"
-                  room2 "green forest" "cobblestone" "wood")
-            (join! room2 "dry desert"
-                    room3 "cave" "iron" "iron")
-            (join! room3 "dry desert"
-                    room4 "snowy mountain" "obsidian" "diamond")
-           ;; Add code here to add things to your rooms
-           (new-enderchest "tempting" starting-room true)
-           (new-wood "fresh" (new-homedepot "friendly" starting-room))
-           (new-tree "tall" 1 starting-room)
-           (new-tree "purple pride" 1 room2)
-           (new-tree "Christmas" 1 room3)
-           (new-pickaxe "wooden" "wood" 1 starting-room)
-           (new-ironingot "shiny" (new-chest "wood" room2))
-           (new-enderchest "inviting" room2 true)
-           (new-goldingot "shiny" (new-enderchest "???" room2 true))
-           (new-diamond "diamond" (new-enderchest "terrifying" room3 false))
-           (new-enderchest "totally safe" room3 true)
+  (local [(define room1 (new-room "blank empty"))
+          (define room2 (new-room "happy joyful"))]
+    (begin (set! me (new-person "" room1))
+           (join! room1 "happy joyful"
+                  room2 "blank empty")
+           (new-prop "banana"
+                     "It's a banana.  I wonder how long it's been here..."
+                     room2)
+           (standard-magic-8-ball room1)
            (check-containers!)
            (void))))
 
-;;;
-;;; PUT YOUR WALKTHROUGHS HERE
-;;;
-
-(define-walkthrough test
-  (open (the wood chest))
-  (take (within (the wood chest)))
-  (punch (the tree))
-  (mine (the barricade))
-  (go (the barricade)))
-
-
-
-;;Count all elements
-
-;;Trees in every room
-;;make the homedepot with wood
-
-
-
-
-
-
-
-
-
-
-
-
-
+(define-walkthrough walkthrough
+  (shake (the ball))
+  (go (the door))
+  (take (the banana))
+  (inventory)
+  (check (have? (the banana)))
+  (go (the door))
+  (drop (the banana))
+  (check (not (have? (the banana))))
+  (look)
+  (inventory)
+  (check (room? (thing-location (the banana))))
+  (shake (the ball)))
 
 ;;;
 ;;; UTILITIES
