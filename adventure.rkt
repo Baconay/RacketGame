@@ -729,11 +729,6 @@
 
 
 
-;;Count all elements
-
-;;Trees in every room
-;;make the homedepot with wood
-
 
 
 
