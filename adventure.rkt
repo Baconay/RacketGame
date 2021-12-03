@@ -606,7 +606,7 @@
         (if (<= (pickaxe-durability pickaxe) 0)
             (error "Your pickaxe is broken!")
             (error "You need the right pickaxe to mine this barricade")))
-      (display "The barricade is already unblocked LMbawAO")))
+      (display "The barricade is already unblocked lMaO")))
 
 (define-user-command (mine barricade pickaxe)
   "Mines a barricade with a pickaxe")
