@@ -308,7 +308,7 @@
   (define (examine-contents c)
     (describe-contents c))
 
-;; make-chest : string container -> chest
+;; new-chest : string container -> chest
 ;; Makes a chest with adjectives and in a location
 (define (new-chest adjectives location)
   (local [(define the-chest 
@@ -353,7 +353,7 @@
                   )))
           (set-chest-open?! c #t))))
 
-;; new-trapchest : string container -> chest
+;; new-trapchest : string container boolean -> chest
 ;; Makes a ender chest in given location
 (define (new-enderchest adjectives location trapped)
   (local [(define the-enderchest
@@ -624,7 +624,8 @@
                 (begin (destroy! material)
                         (destroy! stick)
                         (new-pickaxe (element-matter material) (element-matter material) 1 me)
-                        (display "Congrats, you can mine now"))
+                        (display "Congrats, you can mine now")
+                        (newline))
               (error "Cannot craft pickaxe"))
         (error "Cannot craft pickaxe"))
         (when (and (ingot? material) (ingot-luster material))
@@ -692,8 +693,10 @@
   (local [(define starting-room (new-room "green forest"))
           (define room2 (new-room "cave"))
           (define room3 (new-room "dry desert"))
-          (define room4 (new-room "snowy mountain"))]
+          (define room4 (new-room "snowy mountain"))
+          (define room5 (new-room "the void"))]
     (begin (set! me (new-person "Steve" 100 starting-room))
+
            ;; Add join commands to connect your rooms with doors
            (join! starting-room "cave"
                   room2 "green forest" "cobblestone" "wood")
@@ -701,6 +704,9 @@
                     room3 "cave" "iron" "iron")
             (join! room3 "dry desert"
                     room4 "snowy mountain" "obsidian" "diamond")
+            (join! room4 "snowy mountain"
+                    room5 "the void" "bedrock" "obsidian")
+
            ;; Add code here to add things to your rooms
            (new-enderchest "tempting" starting-room true)
            (new-wood "fresh" (new-homedepot "friendly" starting-room))
@@ -708,7 +714,7 @@
            (new-tree "purple pride" 1 room2)
            (new-tree "Christmas" 1 room3)
            (new-pickaxe "wooden" "wood" 1 starting-room)
-           (new-ironingot "shiny" (new-chest "wood" room2))
+           (new-ironingot "shiny" (new-chest "wooden" room2))
            (new-enderchest "inviting" room2 true)
            (new-goldingot "shiny" (new-enderchest "???" room2 true))
            (new-diamond "diamond" (new-enderchest "terrifying" room3 false))
