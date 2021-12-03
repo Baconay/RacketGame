@@ -708,18 +708,41 @@
                     room5 "the void" "bedrock" "obsidian")
 
            ;; Add code here to add things to your rooms
+
+           ;;
+           ;; Starting-Room
+           ;;
            (new-enderchest "tempting" starting-room true)
            (new-wood "fresh" (new-homedepot "friendly" starting-room))
            (new-tree "tall" 1 starting-room)
-           (new-tree "purple pride" 1 room2)
-           (new-tree "Christmas" 1 room3)
            (new-pickaxe "wooden" "wood" 1 starting-room)
+
+           ;;
+           ;; Room2
+           ;;
+           (new-tree "purple pride" 1 room2)
            (new-ironingot "shiny" (new-chest "wooden" room2))
-           (new-enderchest "inviting" room2 true)
            (new-goldingot "shiny" (new-enderchest "???" room2 true))
+           (new-enderchest "inviting" room2 true)
+
+           ;;
+           ;; Room3
+           ;;
+           (new-tree "Christmas" 1 room3)
            (new-diamond "diamond" (new-enderchest "terrifying" room3 false))
            (new-enderchest "totally safe" room3 true)
-           (check-containers!)
+
+           ;;
+           ;; Room4
+           ;;
+           (new-tree "festive" 1 room4)
+           
+
+
+           ;;
+           ;; Room5
+           ;;
+           (check-containers!) 
            (void))))
 
 ;;;
