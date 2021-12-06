@@ -715,7 +715,7 @@
     (define-user-command (read paper)
     "Read's the given paper")
 
-    
+
 ;;;
 ;;; THE GAME WORLD - FILL ME IN
 ;;;
