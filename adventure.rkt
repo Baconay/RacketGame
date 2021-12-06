@@ -272,8 +272,10 @@
   (material durability)
 
   #:methods
-  (define (upgrade new-material pickaxe)
-    (set! pickaxe-material new-material))
+  ;(define (upgrade new-material pickaxe)
+   ; (begin (new-pickaxe (element-matter new-material) (element-matter new-material) 1 me)
+   ; (destroy! pickaxe)))
+    
     
   (define (check-durability pickaxe)
     (pickaxe-durability pickaxe))
@@ -349,6 +351,7 @@
                  (newline)
                  (newline)
                  (display "RESTARTING GAME")
+                 (display "Type (look) to see where you are at.")
                   (start-game)
                   )))
           (set-chest-open?! c #t))))
@@ -385,7 +388,7 @@
         (if (= (tree-durability t) 0)
             (begin (new-stick "wooden" me)
                     (destroy! t)
-                    (display "You receive: a stick. The tree is now destoryed."))
+                    (display "You receive: a stick. The tree is now destroyed."))
             (begin (new-stick "wooden" me)
                    (display "You receive: a stick."))))))
 ;;Creating tree
@@ -453,19 +456,19 @@
                 the-diamond)))
 
 ;; Cobblestone ========================================================
-(define-struct (cobblestone element)
-())
+;(define-struct (cobblestone element)
+;())
 
-(define (new-cobblestone adjectives location)
-  (local [(define the-cobblestone
-        (make-cobblestone (string->words adjectives)
-                    '() 
-                    location
-                    true
-                    "stone"
-                    ))]
-      (begin (initialize-thing! the-cobblestone)
-                the-cobblestone)))
+;(define (new-cobblestone adjectives location)
+ ; (local [(define the-cobblestone
+  ;      (make-cobblestone (string->words adjectives)
+   ;                 '() 
+    ;                location
+     ;               true
+      ;              "stone"
+       ;             ))]
+      ;(begin (initialize-thing! the-cobblestone)
+       ;         the-cobblestone)))
 
 ;; Ingot ========================================================
 (define-struct (ingot element)
@@ -490,7 +493,7 @@
                     location
                     true
                     "iron"
-                    true
+                    false
                     ))]
       (begin (initialize-thing! the-ironingot)
                 the-ironingot)))
@@ -526,6 +529,24 @@
       (begin (initialize-thing! the-obsidian)
                 the-obsidian)))
 
+;; Paper ============================================================
+(define-struct (paper thing)
+()
+
+#:methods
+(define (read paper)
+(begin (display "CONGRATULATIONS! YOU WIN NOTHING AND HAVE WASTED YOUR TIME!")
+(newline)
+(display "If you made the golden pickaxe, congrats again! You utilized the secret procedure!"))))
+
+(define (new-paper adjectives location)
+  (local [(define the-paper
+        (make-paper (string->words adjectives)
+                    '()
+                    location
+                    ))]
+      (begin (initialize-thing! the-paper)
+            the-paper)))
                             
 ;;;
 ;;; USER COMMANDS
@@ -624,12 +645,12 @@
                 (begin (destroy! material)
                         (destroy! stick)
                         (new-pickaxe (element-matter material) (element-matter material) 1 me)
-                        (display "Congrats, you can mine now")
+                        (display "Congrats! You can now mine.")
                         (newline))
               (error "Cannot craft pickaxe"))
         (error "Cannot craft pickaxe"))
         (when (and (ingot? material) (ingot-luster material))
-            (display "Achievement Unlocked: Oooooo Shiny Pickaxe!"))))
+            (display "Achievement Unlocked: Oooooo, Shiny Pickaxe!"))))
 
 (define-user-command (craft-pickaxe stick material)
   "Crafts a pickaxe using a stick and a material")
@@ -648,6 +669,9 @@
 
   (define-user-command (close chest)
   "Closes a chest")
+
+  (define-user-command (examine-contents chest)
+  "Lists the items within a chest")
 
   (define-user-command (punch tree)
   "Punches a tree for sticks")   
@@ -675,13 +699,23 @@
   "Checks to see if a barricade is blocked")
 
   (define (alchemy??? material pickaxe)
-    (begin (upgrade pickaxe (element-matter material))
+    (begin (new-pickaxe (element-matter material) (element-matter material) 1 me)
           (display "Achievement unlocked: Black Magic???")
           (newline)
-          (display "Your pickaxe has now been upgraded")))
+          (display "Your pickaxe has now been upgraded")
+          (destroy! material)
+          (destroy! pickaxe)))
 
     (define-user-command (alchemy??? m p)
     "?????????????")
+
+    (define-user-command (examine ingot)
+    "Examines the luster of an ingot")
+
+    (define-user-command (read paper)
+    "Read's the given paper")
+
+    
 ;;;
 ;;; THE GAME WORLD - FILL ME IN
 ;;;
@@ -715,34 +749,38 @@
            (new-enderchest "tempting" starting-room true)
            (new-wood "fresh" (new-homedepot "friendly" starting-room))
            (new-tree "tall" 1 starting-room)
-           (new-pickaxe "wooden" "wood" 1 starting-room)
+           
 
            ;;
            ;; Room2
            ;;
            (new-tree "purple pride" 1 room2)
            (new-ironingot "shiny" (new-chest "wooden" room2))
-           (new-goldingot "shiny" (new-enderchest "???" room2 true))
+           (new-goldingot "shiny" (new-enderchest "???" room2 false))
            (new-enderchest "inviting" room2 true)
 
            ;;
            ;; Room3
            ;;
            (new-tree "Christmas" 1 room3)
-           (new-diamond "diamond" (new-enderchest "terrifying" room3 false))
-           (new-enderchest "totally safe" room3 true)
+           (new-diamond "glorious" (new-enderchest "terrifying" room3 false))
+           (new-enderchest "totally safe" room3 true) 
 
            ;;
            ;; Room4
            ;;
            (new-tree "festive" 1 room4)
+           (new-obsidian "black" (new-enderchest "=P" room4 false))
+           (new-enderchest "nice looking" room4 true)
+           (new-enderchest "the correct" room4 true)
            
 
 
            ;;
            ;; Room5
            ;;
-           (check-containers!) 
+           (new-paper "plain" (new-chest "winners" room5))
+           (check-containers!)
            (void))))
 
 ;;;
@@ -750,11 +788,57 @@
 ;;;
 
 (define-walkthrough test
-  (open (the wood chest))
-  (take (within (the wood chest)))
+  (take (within (the TheHomeDepot)))
   (punch (the tree))
-  (mine (the barricade))
-  (go (the barricade)))
+  (craft-pickaxe (the stick) (the wood))
+  (mine (the barricade) (the pickaxe))
+  (go (the barricade))
+  (open (the wooden chest))
+  (take (within (the wooden chest)))
+  (open (the ??? enderchest))
+  (take (within (the ??? enderchest)))
+  (punch (the tree))
+  (craft-pickaxe (the stick) (the ironingot))
+  (alchemy??? (the goldingot) (the pickaxe))
+  )
+
+(define-walkthrough win
+  ; STARTING ROOM
+  (take (within (the TheHomeDepot)))
+  (punch (the tree))
+  (craft-pickaxe (the stick) (the wood))
+  (mine (the barricade) (the pickaxe))
+  (go (the barricade))
+  
+  ; ROOM 2
+  (open (the wooden chest))
+  (take (within (the wooden chest) ironingot))
+  (punch (the tree))
+  (craft-pickaxe (the stick) (the ironingot))
+  (mine (the barricade) (the pickaxe))
+  (go (the barricade))
+  
+  ; ROOM 3
+  (open (the terrifying enderchest))
+  (take (within (the terrifying enderchest) diamond))
+  (punch (the tree))
+  (craft-pickaxe (the stick) (the diamond))
+  (mine (the barricade) (the pickaxe))
+  (go (the barricade))
+
+  ; ROOM 4
+  (open (the "=P" enderchest))
+  (take (within (the "=P" enderchest)))
+  (punch (the tree))
+  (craft-pickaxe (the stick) (the obsidian))
+  (mine (the barricade) (the pickaxe))
+  (go (the barricade))
+  
+  ; ROOM 5
+  (open (the chest))
+  (take (within (the chest)))
+  (read (the paper))
+  )
 
 
  
@@ -767,7 +851,8 @@
 
 
 
-
+;;; Add message at the end of the game saying you won and wasted your time
+;;; also add message saying if you made the golden pickaxe you found the secret to the game. aka the alchemy command 
 
 
 
