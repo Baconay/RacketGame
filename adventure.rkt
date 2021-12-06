@@ -787,7 +787,7 @@
 ;;; PUT YOUR WALKTHROUGHS HERE
 ;;;
 
-(define-walkthrough test
+(define-walkthrough goldpickaxe
   (take (within (the TheHomeDepot)))
   (punch (the tree))
   (craft-pickaxe (the stick) (the wood))
